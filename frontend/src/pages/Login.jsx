@@ -86,9 +86,11 @@ export default function Login() {
                 bg="#F2F2F2"
               />
             </InputGroup>
-            <Button w="150px" h="55px" bgColor="#8BBF73" color="#FCFAFA">
-              Entrar
-            </Button>
+            <ChakraLink as={ReactRouterLink} to="/home">
+              <Button w="150px" h="55px" bgColor="#8BBF73" color="#FCFAFA">
+                Entrar
+              </Button>
+            </ChakraLink>
           </FormControl>
           <ChakraLink
             as={ReactRouterLink}
