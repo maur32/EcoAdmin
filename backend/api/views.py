@@ -20,6 +20,14 @@ class GatheringListCreate(generics.ListCreateAPIView):
         else:
             print(serializer.errors)
 
+class GatheringId(generics.RetrieveAPIView):
+     serializer_class = GatheringSerializer
+     permission_classes = [IsAuthenticated]
+
+     def get_queryset(self):
+        user = self.request.user
+        return Gathering.objects.filter(author=user).filter(pk=self.kwargs['pk'])
+
 
 class GatheringDelete(generics.DestroyAPIView):
     serializer_class = GatheringSerializer
