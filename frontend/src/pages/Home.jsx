@@ -6,7 +6,6 @@ import {
   Container,
   HStack,
   Heading,
-  Hide,
   Icon,
   IconButton,
   Image,
@@ -21,44 +20,65 @@ import {
   StackDivider,
   Text,
   VStack,
+  useToast,
 } from "@chakra-ui/react";
-import {List, PlusCircle} from "@phosphor-icons/react";
-import {Link as ReactRouterLink} from "react-router-dom";
+import {CaretLeft, CaretRight, List, PlusCircle} from "@phosphor-icons/react";
+import {Link as ReactRouterLink, useNavigate} from "react-router-dom";
+
+import style from "./Home.module.css";
 
 import Logo from "../assets/EcoAdmin.svg";
+import {useEffect, useState} from "react";
+import api from "../api";
 
-const gatherings = [
-  {
-    date: "28/06/2024",
-    material: "Teclado",
-    materialType: "Periféricos",
-    state: "Excelente",
-    id: "1",
-  },
-  {
-    date: "29/06/2024",
-    material: "Mouse",
-    materialType: "Periféricos",
-    state: "Ruim",
-    id: "2",
-  },
-  {
-    date: "28/07/2024",
-    material: "Monitor",
-    materialType: "Periféricos",
-    state: "Muito Ruim",
-    id: "3",
-  },
-  {
-    date: "28/07/2024",
-    material: "Placa Mãe B450M",
-    materialType: "Hardware",
-    state: "Bom",
-    id: "4",
-  },
-];
+import ReactPaginate from "react-paginate";
 
-export default function Home() {
+export default function Home({itemsPerPage}) {
+  const navigate = useNavigate();
+
+  const [gatherings, setGatherings] = useState();
+  const [itemOffset, setItemOffset] = useState(0);
+
+  const endOffset = itemOffset + itemsPerPage;
+  console.log(`Loading items from ${itemOffset} to ${endOffset}`);
+  const currentItems = gatherings?.slice(itemOffset, endOffset);
+  const pageCount = Math.ceil(gatherings?.length / itemsPerPage);
+
+  const handlePageClick = (event) => {
+    const newOffset = (event.selected * itemsPerPage) % gatherings?.length;
+    console.log(
+      `User requested page number ${event.selected}, which is offset ${newOffset}`
+    );
+    setItemOffset(newOffset);
+  };
+
+  const toast = useToast();
+
+  useEffect(() => {
+    api
+      .get("/api/gathering/")
+      .then((res) => res.data)
+      .then((data) => {
+        setGatherings(data);
+        console.log(data);
+      })
+      .catch((err) =>
+        toast({
+          title: "Erro ao buscar as coletas",
+          status: "error",
+          description: err,
+          position: "top-right",
+          duration: 9000,
+          isClosable: true,
+        })
+      );
+  }, []);
+
+  function handleLogout() {
+    localStorage.clear();
+    navigate("/login");
+  }
+
   return (
     <Container
       maxW="100%"
@@ -96,7 +116,7 @@ export default function Home() {
                 Novo Agendamento
               </MenuItem>
               <MenuDivider />
-              <MenuItem>Sair</MenuItem>
+              <MenuItem onClick={handleLogout}>Sair</MenuItem>
             </MenuList>
           </Menu>
           <HStack>
@@ -105,13 +125,6 @@ export default function Home() {
             </Heading>
             <Image src={Logo} w={12} h={12} />
           </HStack>
-        </HStack>
-        <HStack>
-          <Hide below="md">
-            <Text color="#255938" fontSize={20} fontWeight="bold">
-              Bem vindo, Usuário!
-            </Text>
-          </Hide>
         </HStack>
       </Box>
       <VStack
@@ -129,45 +142,68 @@ export default function Home() {
         </HStack>
 
         <SimpleGrid w="100%" minChildWidth="300px" spacing="40px">
-          {gatherings
-            ? gatherings.map((gathering) => (
-                <Card key={gathering.id}>
-                  <CardHeader>
-                    <Heading size="md">{gathering.date}</Heading>
-                  </CardHeader>
+          {currentItems
+            ? currentItems.map((gathering) => {
+                const date = new Date(gathering.date);
+                return (
+                  <Card key={gathering.id}>
+                    <CardHeader>
+                      <ChakraLink
+                        as={ReactRouterLink}
+                        to={`/gathering/${gathering.id}`}
+                      >
+                        <Heading size="md">
+                          {date.toLocaleDateString("pt-BR")}
+                        </Heading>
+                      </ChakraLink>
+                    </CardHeader>
 
-                  <CardBody>
-                    <Stack divider={<StackDivider />} spacing="4">
-                      <Box>
-                        <Heading size="xs" textTransform="uppercase">
-                          Tipo do Material
-                        </Heading>
-                        <Text pt="2" fontSize="sm">
-                          {gathering.materialType}
-                        </Text>
-                      </Box>
-                      <Box>
-                        <Heading size="xs" textTransform="uppercase">
-                          Nome do material
-                        </Heading>
-                        <Text pt="2" fontSize="sm">
-                          {gathering.material}
-                        </Text>
-                      </Box>
-                      <Box>
-                        <Heading size="xs" textTransform="uppercase">
-                          Estado do material
-                        </Heading>
-                        <Text pt="2" fontSize="sm">
-                          {gathering.state}
-                        </Text>
-                      </Box>
-                    </Stack>
-                  </CardBody>
-                </Card>
-              ))
-            : "Erro"}
+                    <CardBody>
+                      <Stack divider={<StackDivider />} spacing="4">
+                        <Box>
+                          <Heading size="xs" textTransform="uppercase">
+                            Tipo do Material
+                          </Heading>
+                          <Text pt="2" fontSize="sm">
+                            {gathering.material_type}
+                          </Text>
+                        </Box>
+                        <Box>
+                          <Heading size="xs" textTransform="uppercase">
+                            Nome do material
+                          </Heading>
+                          <Text pt="2" fontSize="sm">
+                            {gathering.material_name}
+                          </Text>
+                        </Box>
+                        <Box>
+                          <Heading size="xs" textTransform="uppercase">
+                            Estado do material
+                          </Heading>
+                          <Text pt="2" fontSize="sm">
+                            {gathering.material_state}
+                          </Text>
+                        </Box>
+                      </Stack>
+                    </CardBody>
+                  </Card>
+                );
+              })
+            : "Carregando..."}
         </SimpleGrid>
+        <ReactPaginate
+          containerClassName={style.pagination}
+          pageClassName={style.item}
+          activeClassName={style.selected}
+          breakClassName={style.item}
+          breakLabel="..."
+          nextLabel={<CaretRight weight="fill" />}
+          onPageChange={handlePageClick}
+          pageRangeDisplayed={5}
+          pageCount={pageCount}
+          previousLabel={<CaretLeft weight="fill" />}
+          renderOnZeroPageCount={null}
+        />
       </VStack>
     </Container>
   );

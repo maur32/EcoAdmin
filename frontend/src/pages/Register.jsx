@@ -14,19 +14,52 @@ import {
   VStack,
   Box,
   Flex,
+  Spinner,
+  useToast,
 } from "@chakra-ui/react";
-import {Link as ReactRouterLink} from "react-router-dom";
-import {
-  ArrowSquareLeft,
-  Envelope,
-  LockSimple,
-  UserCircle,
-} from "@phosphor-icons/react";
+import {Link as ReactRouterLink, useNavigate} from "react-router-dom";
+import {ArrowSquareLeft, Envelope, LockSimple} from "@phosphor-icons/react";
 import Logo from "../assets/EcoAdmin.svg";
 import trashIcon from "../assets/trashIcon.png";
 import wave from "../assets/wave.png";
+import {useState} from "react";
+import api from "../api";
 
 export default function Register() {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const toast = useToast();
+
+  const handleSubmit = async (e) => {
+    setLoading(true);
+    e.preventDefault();
+    try {
+      console.log(e);
+      await api.post("/api/user/register/", {username, password});
+      toast({
+        title: "Sua conta foi criado com sucesso!",
+        status: "success",
+        position: "top-right",
+        duration: 9000,
+        isClosable: true,
+      });
+      navigate("/login");
+    } catch (error) {
+      toast({
+        title: "Erro na criação da conta",
+        description: JSON.stringify(error.data),
+        status: "error",
+        position: "top-right",
+        duration: 9000,
+        isClosable: true,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <>
       <Container
@@ -96,31 +129,24 @@ export default function Register() {
               Cadastre-se!
             </Heading>
             <FormControl
+              as="form"
               gap={6}
               display="flex"
               flexDir="column"
               alignItems="center"
+              onSubmit={handleSubmit}
             >
-              <InputGroup>
-                <InputLeftElement alignContent="center" h="100%">
-                  <Icon as={UserCircle} weight="thin" w={6} h={6} />
-                </InputLeftElement>
-                <Input
-                  type="text"
-                  placeholder="Name"
-                  height={70}
-                  bg="#F2F2F2"
-                />
-              </InputGroup>
               <InputGroup>
                 <InputLeftElement alignContent="center" h="100%">
                   <Icon as={Envelope} weight="thin" w={6} h={6} />
                 </InputLeftElement>
                 <Input
-                  type="email"
-                  placeholder="Email"
+                  type="text"
+                  placeholder="Usuário"
                   height={70}
                   bg="#F2F2F2"
+                  onChange={(e) => setUsername(e.target.value)}
+                  value={username}
                 />
               </InputGroup>
               <InputGroup>
@@ -132,10 +158,20 @@ export default function Register() {
                   placeholder="Password"
                   height={70}
                   bg="#F2F2F2"
+                  onChange={(e) => setPassword(e.target.value)}
+                  value={password}
                 />
               </InputGroup>
-              <Button w="150px" h="55px" bgColor="#8BBF73" color="#FCFAFA">
+              <Button
+                type="submit"
+                gap={4}
+                w="150px"
+                h="55px"
+                bgColor="#8BBF73"
+                color="#FCFAFA"
+              >
                 Cadastrar
+                {loading ? <Spinner /> : ""}
               </Button>
             </FormControl>
           </VStack>

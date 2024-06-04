@@ -3,7 +3,6 @@ import {
   Container,
   HStack,
   Heading,
-  Link as ChakraLink,
   IconButton,
   Menu,
   MenuButton,
@@ -16,87 +15,56 @@ import {
   FormLabel,
   Input,
   InputGroup,
-  Button,
   Select,
-  Spinner,
   useToast,
 } from "@chakra-ui/react";
 import {List} from "@phosphor-icons/react";
-import {Link as ReactRouterLink, useNavigate} from "react-router-dom";
+import {
+  Link as ReactRouterLink,
+  useNavigate,
+  useParams,
+} from "react-router-dom";
 
 import Logo from "../assets/EcoAdmin.svg";
-import {useState} from "react";
-import axios from "axios";
+import {useEffect, useState} from "react";
 import api from "../api";
 
-export default function CreateGathering() {
-  const [loading, setLoading] = useState(false);
-
-  const [name, setName] = useState("");
-  const [type, setType] = useState("");
-  const [description, setDescription] = useState("");
-  const [state, setState] = useState("");
-  const [cep, setCep] = useState("");
-  const [street, setStreet] = useState("");
-  const [number, setNumber] = useState("");
-  const [city, setCity] = useState("");
-  const [uf, setUf] = useState("");
-  const [date, setDate] = useState("");
+export default function Gathering() {
+  const [gathering, setGathering] = useState("");
+  const [gatheringDate, setGatheringDate] = useState("");
 
   const toast = useToast();
   const navigate = useNavigate();
 
-  function handleCepBlur() {
-    axios
-      .get(`https://viacep.com.br/ws/${cep}/json/`)
+  const {id} = useParams();
+
+  useEffect(() => {
+    api
+      .get(`/api/gathering/${id}/`)
       .then((res) => {
-        setCep(res.data.cep);
-        setCity(res.data.localidade);
-        setStreet(res.data.logradouro);
-        setUf(res.data.uf);
+        setGathering(res.data);
+        const date = new Date(res.data.date);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        setGatheringDate(`${year}-${month}-${day}`);
       })
       .catch(() => {
-        setCity("");
-        setStreet("");
-        setUf("");
+        toast({
+          title: "Erro ao buscar o agendamento",
+          status: "error",
+          description: "Não foi possível encontrar o agendamento",
+          position: "top-right",
+          duration: 9000,
+          isClosable: true,
+        });
+        navigate("/");
       });
-  }
+  }, [gathering, id, navigate, toast]);
 
   function handleLogout() {
     localStorage.clear();
     navigate("/login");
-  }
-
-  async function handleSubmit(e) {
-    setLoading(true);
-    e.preventDefault();
-    try {
-      await api.post("/api/gathering/", {
-        title: name,
-        material_name: name,
-        material_type: type,
-        material_description: description,
-        material_state: state,
-        location_street: street,
-        location_number: number,
-        location_city: city,
-        location_state: uf,
-        location_country: "BR",
-        date,
-      });
-      toast({
-        title: "Agendado com sucesso!",
-        status: "success",
-        position: "top-right",
-        duration: 9000,
-        isClosable: true,
-      });
-      navigate("/");
-    } catch (err) {
-      console.log(err);
-    } finally {
-      setLoading(false);
-    }
   }
 
   return (
@@ -150,7 +118,7 @@ export default function CreateGathering() {
 
       <VStack gap={{base: 4, lg: 6}} paddingInline={{base: 7, lg: 14}}>
         <Heading flex={1} fontSize={32} color="#255938">
-          Novo agendamento
+          Agendamento - {gathering.id}
         </Heading>
         <FormControl
           as="form"
@@ -159,7 +127,6 @@ export default function CreateGathering() {
           display="flex"
           flexDir="column"
           maxW="1200px"
-          onSubmit={handleSubmit}
         >
           <VStack gap={6} align="start">
             <InputGroup flexDirection="column">
@@ -168,11 +135,11 @@ export default function CreateGathering() {
               </FormLabel>
               <Input
                 type="text"
+                disabled
                 placeholder="Nome"
-                value={name}
+                value={gathering.material_name}
                 height={70}
                 bg="#F2F2F2"
-                onChange={(e) => setName(e.target.value)}
                 required
               />
             </InputGroup>
@@ -181,10 +148,10 @@ export default function CreateGathering() {
                 Tipo do material <sup style={{color: "red"}}>*</sup>
               </FormLabel>
               <Select
-                value={type}
+                disabled
+                value={gathering.material_type}
                 height={70}
                 bg="#F2F2F2"
-                onChange={(e) => setType(e.target.value)}
                 required
               >
                 <option disabled value="">
@@ -202,10 +169,10 @@ export default function CreateGathering() {
               <Input
                 type="text"
                 placeholder="Descrição"
+                disabled
                 height={70}
-                value={description}
+                value={gathering.material_description}
                 bg="#F2F2F2"
-                onChange={(e) => setDescription(e.target.value)}
                 required
               />
             </InputGroup>
@@ -214,11 +181,11 @@ export default function CreateGathering() {
                 Estado do material <sup style={{color: "red"}}>*</sup>
               </FormLabel>
               <Select
-                value={state}
+                value={gathering.material_state}
+                disabled
                 type="text"
                 height={70}
                 bg="#F2F2F2"
-                onChange={(e) => setState(e.target.value)}
                 required
               >
                 <option disabled value="">
@@ -233,31 +200,15 @@ export default function CreateGathering() {
             </InputGroup>
             <InputGroup flexDirection="column">
               <FormLabel mb={1}>
-                CEP <sup style={{color: "red"}}>*</sup>
-              </FormLabel>
-              <Input
-                type="text"
-                value={cep}
-                placeholder="CEP"
-                height={70}
-                bg="#F2F2F2"
-                onChange={(e) => setCep(e.target.value)}
-                onBlur={handleCepBlur}
-                maxLength={9}
-                required
-              />
-            </InputGroup>
-            <InputGroup flexDirection="column">
-              <FormLabel mb={1}>
                 Rua <sup style={{color: "red"}}>*</sup>
               </FormLabel>
               <Input
                 type="text"
                 placeholder="Rua"
-                value={street}
+                disabled
+                value={gathering.location_street}
                 height={70}
                 bg="#F2F2F2"
-                onChange={(e) => setStreet(e.target.value)}
                 required
               />
             </InputGroup>
@@ -268,11 +219,11 @@ export default function CreateGathering() {
               <Input
                 type="text"
                 placeholder="Número"
-                value={number}
+                disabled
+                value={gathering.location_number}
                 height={70}
                 bg="#F2F2F2"
                 required
-                onChange={(e) => setNumber(e.target.value)}
               />
             </InputGroup>
             <InputGroup flexDirection="column">
@@ -282,10 +233,10 @@ export default function CreateGathering() {
               <Input
                 type="text"
                 placeholder="Cidade"
-                value={city}
+                value={gathering.location_city}
+                disabled
                 height={70}
                 bg="#F2F2F2"
-                onChange={(e) => setCity(e.target.value)}
                 required
               />
             </InputGroup>
@@ -295,12 +246,12 @@ export default function CreateGathering() {
               </FormLabel>
               <Input
                 type="text"
-                value={uf}
+                value={gathering.location_state}
+                disabled
                 placeholder="UF"
                 height={70}
                 bg="#F2F2F2"
                 required
-                onChange={(e) => setUf(e.target.value)}
               />
             </InputGroup>
             <InputGroup flexDirection="column">
@@ -309,29 +260,15 @@ export default function CreateGathering() {
               </FormLabel>
               <Input
                 type="date"
-                value={date}
+                value={gatheringDate}
+                disabled
                 placeholder="Data"
                 height={70}
                 bg="#F2F2F2"
                 required
-                onChange={(e) => {
-                  setDate(e.target.value);
-                }}
               />
             </InputGroup>
           </VStack>
-          <Button
-            type="submit"
-            w="150px"
-            h="55px"
-            gap={4}
-            bgColor="#8BBF73"
-            color="#FCFAFA"
-            m="auto"
-          >
-            Criar
-            {loading ? <Spinner /> : ""}
-          </Button>
         </FormControl>
       </VStack>
     </Container>

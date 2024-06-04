@@ -1,0 +1,25 @@
+.pagination {
+  display: flex;
+  width: 100%;
+  gap: 0.25rem;
+  list-style-type: none;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  box-shadow: 0 0 #0000 0 0 #0000 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  background-color: #fff;
+  width: 36px;
+  height: 36px;
+}
+
+.selected {
+  background-color: #8bbf73;
+  color: #fff;
+}

@@ -3,7 +3,6 @@ import {
   Container,
   HStack,
   Heading,
-  Hide,
   IconButton,
   Image,
   Menu,
@@ -11,16 +10,21 @@ import {
   MenuDivider,
   MenuItem,
   MenuList,
-  Text,
   VStack,
 } from "@chakra-ui/react";
 
 import Logo from "../assets/EcoAdmin.svg";
 
-import {Link as ReactRouterLink} from "react-router-dom";
+import {Link as ReactRouterLink, useNavigate} from "react-router-dom";
 import {List} from "@phosphor-icons/react";
 
 export default function Admin() {
+  const navigate = useNavigate();
+
+  function handleLogout() {
+    localStorage.clear();
+    navigate("/login");
+  }
   return (
     <Container
       maxW="100%"
@@ -54,11 +58,11 @@ export default function Admin() {
               _active={{backgroundColor: "tranparent"}}
             />
             <MenuList>
-              <MenuItem as={ReactRouterLink} to="/Home">
+              <MenuItem as={ReactRouterLink} to="/">
                 Home
               </MenuItem>
               <MenuDivider />
-              <MenuItem>Sair</MenuItem>
+              <MenuItem onClick={handleLogout}>Sair</MenuItem>
             </MenuList>
           </Menu>
           <HStack>
@@ -68,20 +72,14 @@ export default function Admin() {
             <Image src={Logo} w={12} h={12} />
           </HStack>
         </HStack>
-        <HStack>
-          <Hide below="md">
-            <Text color="#255938" fontSize={20} fontWeight="bold">
-              Bem vindo, Usuário!
-            </Text>
-          </Hide>
-        </HStack>
       </Box>
       <VStack>
         <iframe
           width="80%"
-          height="835px"
-          src="https://lookerstudio.google.com/embed/reporting/18b2fa02-9d03-438f-90e2-6b4a2b85fa4f/page/LpJ1D"
-          allowfullscreen
+          height="80%"
+          style={{position: "absolute"}}
+          src="https://lookerstudio.google.com/embed/reporting/6eb76719-b1b9-4013-aaa3-fa5024c52487/page/kMJ1D"
+          allowFullScreen
           sandbox="allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
         ></iframe>
       </VStack>
