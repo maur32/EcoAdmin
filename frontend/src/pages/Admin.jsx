@@ -7,7 +7,6 @@ import {
   Image,
   Menu,
   MenuButton,
-  MenuDivider,
   MenuItem,
   MenuList,
   VStack,
@@ -15,17 +14,32 @@ import {
 
 import Logo from "../assets/EcoAdmin.svg";
 
-import {Link as ReactRouterLink, useNavigate} from "react-router-dom";
+import {Navigate, useNavigate} from "react-router-dom";
 import {List} from "@phosphor-icons/react";
+import {useEffect, useState} from "react";
+import {ACCESS_TOKEN} from "../constants";
+import {jwtDecode} from "jwt-decode";
 
 export default function Admin() {
   const navigate = useNavigate();
+  const [isSuperUser, setIsSuperUser] = useState(true);
 
   function handleLogout() {
     localStorage.clear();
     navigate("/login");
   }
-  return (
+
+  const admin = () => {
+    const token = localStorage.getItem(ACCESS_TOKEN);
+    const decoded = jwtDecode(token);
+    console.log(isSuperUser);
+    setIsSuperUser(decoded.is_superuser);
+  };
+
+  useEffect(() => {
+    admin();
+  });
+  return isSuperUser ? (
     <Container
       maxW="100%"
       minH="100vh"
@@ -58,10 +72,6 @@ export default function Admin() {
               _active={{backgroundColor: "tranparent"}}
             />
             <MenuList>
-              <MenuItem as={ReactRouterLink} to="/">
-                Home
-              </MenuItem>
-              <MenuDivider />
               <MenuItem onClick={handleLogout}>Sair</MenuItem>
             </MenuList>
           </Menu>
@@ -84,5 +94,7 @@ export default function Admin() {
         ></iframe>
       </VStack>
     </Container>
+  ) : (
+    <Navigate to="/" />
   );
 }

@@ -1,4 +1,4 @@
-import {Navigate} from "react-router-dom";
+import {Navigate, useLocation, useNavigate} from "react-router-dom";
 import {jwtDecode} from "jwt-decode";
 import api from "../api";
 import {useEffect, useState} from "react";
@@ -6,6 +6,10 @@ import {ACCESS_TOKEN, REFRESH_TOKEN} from "../constants";
 
 export default function ProtectedRoute({children}) {
   const [isAuthorized, setIsAuthorized] = useState(null);
+  const [isSuperUser, setIsSuperUser] = useState(true);
+
+  const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     auth().catch(() => setIsAuthorized(false));
@@ -38,6 +42,7 @@ export default function ProtectedRoute({children}) {
     const decoded = jwtDecode(token);
     console.log(decoded);
     const tokenExpiration = decoded.exp;
+    setIsSuperUser(decoded.is_superuser);
     const now = Date.now() / 1000;
 
     if (tokenExpiration < now) {
@@ -46,6 +51,10 @@ export default function ProtectedRoute({children}) {
       setIsAuthorized(true);
     }
   };
+
+  if (isSuperUser) {
+    navigate("/admin");
+  }
 
   if (isAuthorized === null) {
     return <div>Loading...</div>;
