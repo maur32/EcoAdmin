@@ -1,5 +1,7 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+
 from .models import Gathering
 
 
@@ -21,3 +23,13 @@ class GatheringSerializer(serializers.ModelSerializer):
         model = Gathering
         fields = ["id", "title", "material_name","material_type","material_description","material_state","location_street","location_city","location_state","location_country","location_number","date" ,"created_at", "author"]
         extra_kwargs = {"author": {"read_only": True}}
+
+class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+
+        # Adiciona o campo is_superuser ao token
+        token['is_superuser'] = user.is_superuser
+
+        return token

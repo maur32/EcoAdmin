@@ -4,6 +4,8 @@ from rest_framework import generics
 from .serializers import UserSerializer, GatheringSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import Gathering
+from rest_framework_simplejwt.views import TokenObtainPairView
+from .serializers import MyTokenObtainPairSerializer
 
 
 class GatheringListCreate(generics.ListCreateAPIView):
@@ -41,5 +43,9 @@ class CreateUserView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [AllowAny]
+
+
+class MyTokenObtainPairView(TokenObtainPairView):
+    serializer_class = MyTokenObtainPairSerializer
 
 
