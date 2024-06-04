@@ -33,7 +33,14 @@ export default function Router() {
           </ProtectedRoute>
         }
       ></Route>
-      <Route path="/admin" element={<Admin />}></Route>
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute>
+            <Admin />
+          </ProtectedRoute>
+        }
+      ></Route>
       <Route
         path="/gathering/:id"
         element={
